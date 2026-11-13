@@ -1,0 +1,37 @@
+Degree level: Bachelor’s
+
+# Project proposal
+
+## 1. The problem and goal
+
+**The problem and goal in my project:**
+
+A quartz filter uses thin crystal plates that change the polarization of light by different amounts at different wavelengths. Between two crossed polarizers, the stack transmits some wavelengths more strongly than others. A filter is specified by thresholds: some wavelength ranges must transmit at least a set fraction of the light, and others at most a set fraction. For example, a filter might have to pass at least 85% of the light between 762 and 768 nanometers, and at most 15% between 822 and 832 nanometers. Each plate adds cost, size and alignment work, so a design with fewer plates is simpler and cheaper.
+
+The goal is to find a stack that meets every threshold with as few plates as possible. I measure improvement by the number of plates in the best valid design a run finds, and compare an LLM agent with a conventional numerical search under the same general limit on the number of spectrum evaluations per run. One spectrum evaluation is one calculation of how a given stack transmits light at every wavelength in the search grid. Every internal call of the optimizer counts toward the limit. A design is valid only if it passes a check on a finer grid of wavelengths, 0.01 nanometers apart. Ties are broken by the number of evaluations until the first valid design with that plate count, and then by total thickness.
+
+The limits are that the model is ideal (it ignores reflection at each surface and manufacturing tolerances), thicknesses and angles are continuous values, and the computation budget is fixed.
+
+## 2. The simulator
+
+**The simulator in my project:**
+
+The simulator is an optical model written in Python that runs on my own computer. Its input is the number of plates and, for each plate, its thickness (between 0.50 and 1.00 millimeters), its angle (between 0 and 180 degrees) and its place in the stack. The program does not read a separate input file: designs are passed to it as JSON text, a standard text format for structured data, and the state of each run is saved to a JSON file.
+
+Its output is the fraction of light that passes at each wavelength in the search grid, and for each wavelength range in the specification it reports the lowest and highest transmission and whether the thresholds hold. The specification itself is defined in Python code, not in a JSON file. The final check on the 0.01 nanometer grid is run on the designs the search reports.
+
+## 3. The agent's role
+
+**The agent in my project:**
+
+The agent decides which change to try next. It can add a plate at a chosen position, remove a plate, change a plate's thickness or angle, or swap or move plates. Thicknesses range from 0.50 to 1.00 millimeters and angles from 0 to 180 degrees, both continuous. The number of plates is any positive integer. The agent also chooses starting values and how to divide the budget. After each change, the simulator returns which thresholds fail and by how much, and the agent uses this result to choose its next step.
+
+A simple program can also search for designs by trying options and keeping the best result, and it serves as the comparison. The question I still need to answer is whether the agent finds a valid design with fewer plates than that conventional search, under the same limit of spectrum evaluations.
+
+## Explain your project to someone outside your field
+
+**My project in simple words:**
+
+Some filters let certain colors of light through and block others. A filter like this is built from thin plates of a crystal, and the plates can be made thicker or thinner, turned to different angles, and stacked in different orders. The stack decides which colors pass. Engineers want a filter that meets the requirements with as few plates as possible, because fewer plates mean a simpler and cheaper device.
+
+My computer program calculates how much light a given stack lets through, which lets me test ideas without building anything. A language-model program proposes which plate to change next, looks at the computer's results, and decides on the next try. The question is whether this approach finds a working filter with fewer plates than a standard search, when both are given the same number of calculations.
